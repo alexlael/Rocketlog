@@ -1,17 +1,27 @@
-import { Request, Response } from 'express';
-import { z } from 'zod';
-import { AppError } from '@/utils/AppError';
-import { prisma } from '@/database/prisma';
-import { ensureAuthenticated } from '@/middlewares/ensure-autheticated';
-
+import { ensureAuthenticated } from "@/middlewares/ensure-autheticated";
+import { Request, Response } from "express";
+import { AppError } from "@/utils/AppError";
+import { prisma } from "@/database/prisma";
+import { z } from "zod";
 
 class DeliveriesController {
-    create(request: Request, response: Response) {
+  async create(request: Request, response: Response) {
+    const bodySchema = z.object({
+      user_id: z.string().uuid(),
+      description: z.string().min(1, "Description is required"),
+    });
 
-        return response.json({ message: "DeliveriesController create method called" });
-    }
+    const { user_id, description } = bodySchema.parse(request.body);
 
+    await prisma.delivery.create({
+      data: {
+        userId: user_id,
+        description,
+      },
+    });
+
+    return response.status(201).json();
+  }
 }
-
 
 export { DeliveriesController };
