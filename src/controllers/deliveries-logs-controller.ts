@@ -22,6 +22,11 @@ class DeliveriesLogsController {
       throw new AppError("Delivery not found", 404);
     }
 
+    if(delivery.status === "delivered") {
+      throw new AppError("Cannot create log for a delivery that has already been delivered",400);
+    }
+      
+
     if (delivery.status === "processing") {
       throw new AppError(
         "Cannot create log for a delivery that is still processing",
@@ -52,9 +57,21 @@ class DeliveriesLogsController {
       where: {
         id: delivery_id,
       },
+      include:{
+        logs: true,
+        // user: true,
+      }
     });
 
-    if(request.user?.role === "customer" && request.user.id !== delivery?.userId) {}
+    if (
+      request.user?.role === "customer" &&
+      request.user.id !== delivery?.userId
+    ) {
+      throw new AppError(
+        "You are not authorized to view this delivery log",
+        403
+      );
+    }
 
     return response.status(200).json(delivery);
   }
